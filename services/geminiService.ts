@@ -3,9 +3,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult, AppMode, Platform, TrendItem } from "../types";
 import { SYSTEM_INSTRUCTION, MODE_PROMPTS, TREND_HUNTER_INSTRUCTION, BRAND_GUARD_INSTRUCTION } from "../constants";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 const MODEL_NAME = 'gemini-2.5-flash';
 
 // Helper to convert small files to Base64 (InlineData)
@@ -28,7 +25,7 @@ const fileToPart = (file: File): Promise<{ inlineData: { data: string; mimeType:
 };
 
 // Helper to upload large files via File API
-const uploadLargeFile = async (file: File): Promise<{ fileData: { fileUri: string; mimeType: string } }> => {
+const uploadLargeFile = async (ai: GoogleGenAI, file: File): Promise<{ fileData: { fileUri: string; mimeType: string } }> => {
   try {
     const uploadResult = await ai.files.upload({
       file: file,
@@ -94,6 +91,9 @@ export const analyzeContent = async (
   }
 ): Promise<AnalysisResult | TrendItem[]> => {
   try {
+    // Initialize AI here to prevent "process is not defined" crash on app load if env var is missing
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
     const currentDate = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
 
     // 1. Prepare Prompt based on Mode
@@ -142,7 +142,7 @@ export const analyzeContent = async (
       const FILE_SIZE_THRESHOLD = 20 * 1024 * 1024; 
       for (const file of files) {
         if (file.size > FILE_SIZE_THRESHOLD) {
-          const part = await uploadLargeFile(file);
+          const part = await uploadLargeFile(ai, file);
           parts.push(part);
         } else {
           const part = await fileToPart(file);
