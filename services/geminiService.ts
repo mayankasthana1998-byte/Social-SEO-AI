@@ -110,13 +110,30 @@ export const analyzeContent = async (
     // Trend Hunter Mode Logic
     if (mode === AppMode.TREND_HUNTER) {
       if (!config.niche) throw new Error("Niche is required for Trend Hunter.");
-      promptText = MODE_PROMPTS.TREND_HUNTER(config.niche, currentDate);
-    } 
+      promptText = `You are a viral trend expert. Search Google for the latest trends in the "${config.niche}" niche as of ${currentDate}. Look for trending topics, hashtags, and viral challenges. Return 5 specific trends as a JSON object with this structure:
+{
+  "trends": [
+    {
+      "headline": "Trend name",
+      "whyItsHot": "Why people are talking about this",
+      "contentIdea": "How to use this trend for ${config.niche}"
+    }
+  ]
+}`;
+    }
     // Standard Modes
     else {
       // Inject Live Trend Instructions if enabled
       if (config.enableLiveTrends) {
-          promptText += TREND_HUNTER_INSTRUCTION(currentDate, platform) + "\n\n";
+          promptText += `CRITICAL INSTRUCTION: You have access to Google Search. Before doing anything else:
+1. Search for "current viral trends and challenges ${currentDate}"
+2. Search for "trending content formats on ${platform} ${currentDate}"
+3. Search for "viral audio and sounds trending now"
+4. Analyze the search results and identify the top 3 trending formats
+5. Reference the specific trending content you found in your response (mention trend names in the 'trendDetected' field)
+6. Make sure to include real trending topics/sounds/challenges from your search results.
+
+` + "\n\n";
       }
 
       // Inject Brand Guidelines if provided
@@ -164,6 +181,7 @@ export const analyzeContent = async (
 
     if (useSearch) {
       generateConfig.tools = [{ googleSearch: {} }];
+      generateConfig.responseMimeType = "application/json";
       // NO responseSchema allowed with search tools in current version
     } else {
       // Standard Schema for Generation/Refine/Spy without search
