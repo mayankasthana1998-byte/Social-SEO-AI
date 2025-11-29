@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult, AppMode, Platform, TrendItem } from "../types";
 import { SYSTEM_INSTRUCTION, MODE_PROMPTS, TREND_HUNTER_INSTRUCTION, BRAND_GUARD_INSTRUCTION } from "../constants";
@@ -88,11 +87,13 @@ export const analyzeContent = async (
     enableLiveTrends?: boolean;
     brandGuidelines?: string;
     niche?: string; // For Trend Hunter
-  }
+  },
+  apiKey: string
 ): Promise<AnalysisResult | TrendItem[]> => {
   try {
-    // Initialize AI here to prevent "process is not defined" crash on app load if env var is missing
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    if (!apiKey) throw new Error("API Key is missing.");
+
+    const ai = new GoogleGenAI({ apiKey: apiKey });
 
     const currentDate = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
 

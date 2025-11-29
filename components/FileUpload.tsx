@@ -21,7 +21,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, multiple = fal
     if (event.target.files && event.target.files.length > 0) {
       const newFiles: FileInput[] = [];
       
-      Array.from(event.target.files).forEach(file => {
+      Array.from(event.target.files).forEach((file: File) => {
         if (file.size > MAX_FILE_SIZE_BYTES) {
           alert(`File ${file.name} exceeds the ${formattedMaxSize} limit.`);
           return;

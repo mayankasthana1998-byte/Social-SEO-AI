@@ -25,7 +25,8 @@ import {
   Facebook,
   Search,
   ShieldCheck,
-  FileText
+  FileText,
+  Key
 } from 'lucide-react';
 
 // Define a type for the config state
@@ -44,6 +45,11 @@ interface ConfigState {
 }
 
 const App: React.FC = () => {
+  // API Key State
+  const [apiKey, setApiKey] = useState<string>('');
+  const [showGatekeeper, setShowGatekeeper] = useState<boolean>(true);
+  const [tempKey, setTempKey] = useState<string>('');
+
   const [mode, setMode] = useState<AppMode>(AppMode.GENERATION);
   const [platform, setPlatform] = useState<Platform>(Platform.INSTAGRAM);
   const [files, setFiles] = useState<FileInput[]>([]);
@@ -71,9 +77,35 @@ const App: React.FC = () => {
     niche: ''
   });
 
+  // Check for existing API Key on mount
+  useEffect(() => {
+    const storedKey = localStorage.getItem('gemini_api_key');
+    const envKey = process.env.API_KEY;
+
+    if (envKey && envKey.length > 0 && !envKey.includes("VITE_")) {
+       // Priority 1: Environment Variable (Vercel)
+       setApiKey(envKey);
+       setShowGatekeeper(false);
+    } else if (storedKey && storedKey.startsWith('AIza')) {
+       // Priority 2: Local Storage
+       setApiKey(storedKey);
+       setShowGatekeeper(false);
+    }
+  }, []);
+
+  const handleSaveKey = () => {
+    if (!tempKey.startsWith('AIza')) {
+      alert('Invalid Key format. It must start with AIza.');
+      return;
+    }
+    localStorage.setItem('gemini_api_key', tempKey);
+    setApiKey(tempKey);
+    setShowGatekeeper(false);
+  };
+
   // Simulation of Loading Phases
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
     
     if (isAnalyzing) {
       setLoadingProgress(0);
@@ -139,7 +171,7 @@ const App: React.FC = () => {
 
     try {
       const filesToAnalyze = files.map(f => f.file);
-      const data = await analyzeContent(filesToAnalyze, mode, platform, config);
+      const data = await analyzeContent(filesToAnalyze, mode, platform, config, apiKey);
       
       if (mode === AppMode.TREND_HUNTER) {
         setTrendResults(data as TrendItem[]);
@@ -187,6 +219,55 @@ const App: React.FC = () => {
     </button>
   );
 
+  // GATEKEEPER UI
+  if (showGatekeeper) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+         {/* Background Orbs */}
+         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[128px] pointer-events-none"></div>
+         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[128px] pointer-events-none"></div>
+
+         <div className="w-full max-w-md bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl relative z-10">
+            <div className="text-center mb-8">
+               <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/30">
+                  <Sparkles className="w-8 h-8 text-white" />
+               </div>
+               <h1 className="text-2xl font-bold text-white mb-2">SocialSEO AI</h1>
+               <p className="text-indigo-400 text-sm font-medium tracking-widest uppercase">Andromeda Engine Initialization</p>
+            </div>
+
+            <div className="space-y-6">
+               <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase ml-1">Google AI Studio API Key</label>
+                  <div className="relative">
+                    <Key className="absolute top-3.5 left-3 w-4 h-4 text-slate-500" />
+                    <input 
+                      type="password"
+                      placeholder="Paste key starting with AIza..."
+                      className="w-full bg-slate-900 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      value={tempKey}
+                      onChange={(e) => setTempKey(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 ml-1">
+                    Your key is stored locally in your browser. We do not save it on our servers.
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-indigo-400 hover:text-indigo-300 ml-1 underline">Get a key here.</a>
+                  </p>
+               </div>
+
+               <button 
+                 onClick={handleSaveKey}
+                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center group"
+               >
+                 Initialize System
+                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+               </button>
+            </div>
+         </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 pb-20">
       {/* Header */}
@@ -201,8 +282,21 @@ const App: React.FC = () => {
               <p className="text-[10px] text-indigo-400 font-medium tracking-wider uppercase">Andromeda Engine</p>
             </div>
           </div>
-          <div className="text-xs text-slate-500 hidden md:block">
-             v3.0.0-Andromeda
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => {
+                localStorage.removeItem('gemini_api_key');
+                setShowGatekeeper(true);
+                setApiKey('');
+                setTempKey('');
+              }}
+              className="text-xs text-slate-500 hover:text-white transition-colors"
+            >
+              Change Key
+            </button>
+            <div className="text-xs text-slate-500 hidden md:block">
+               v3.0.0-Andromeda
+            </div>
           </div>
         </div>
       </header>
