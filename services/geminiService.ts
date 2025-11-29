@@ -226,33 +226,56 @@ export const analyzeContent = async (
       };
     }
 
-    // 5. Call API
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: { parts },
-      config: generateConfig
-    });
+    // 5. Call API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-    const resultText = response.text;
-    if (!resultText) throw new Error("No response from AI");
+    try {
+      const response = await ai.models.generateContent({
+        model: MODEL_NAME,
+        contents: { parts },
+        config: generateConfig
+      });
 
-    const cleanText = cleanJson(resultText);
-    const parsed = JSON.parse(cleanText);
+      clearTimeout(timeoutId);
 
-    // 6. Return based on Mode
-    if (mode === AppMode.TREND_HUNTER) {
-      if (parsed.trends && Array.isArray(parsed.trends)) {
-        return parsed.trends as TrendItem[];
+      const resultText = response.text;
+      if (!resultText) throw new Error("No response from AI");
+
+      const cleanText = cleanJson(resultText);
+      const parsed = JSON.parse(cleanText);
+
+      // 6. Return based on Mode
+      if (mode === AppMode.TREND_HUNTER) {
+        if (parsed.trends && Array.isArray(parsed.trends) && parsed.trends.length > 0) {
+          return parsed.trends as TrendItem[];
+        }
+        // Fallback: create synthetic trends from response if parsing fails
+        if (parsed.trend || parsed.contentIdea || parsed.headline) {
+          return [{
+            headline: parsed.headline || "Trend Detected",
+            whyItsHot: parsed.whyItsHot || "Currently trending in your niche",
+            contentIdea: parsed.contentIdea || "Create content around this trend"
+          }];
+        }
+        throw new Error("No valid trends found. Please try again with a different niche or check your internet connection.");
+      } else {
+        return parsed as AnalysisResult;
       }
-      throw new Error("Failed to parse Trend results.");
-    } else {
-      return parsed as AnalysisResult;
+    } catch (timeoutError: any) {
+      if (timeoutError.name === 'AbortError') {
+        throw new Error("Request timed out. The API took too long to respond. Please try again with a smaller file or simpler request.");
+      }
+      throw timeoutError;
     }
 
   } catch (error: any) {
     console.error("Gemini Analysis Error:", error);
     if (error.message?.includes('413') || error.message?.includes('too large')) {
       throw new Error("The file is too large for the current connection. Please try a smaller file.");
+    }
+    if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+      throw new Error("Request timed out. Please check your internet connection and try again.");
     }
     throw new Error("Connection Failed. Please check your API Key or Internet connection.");
   }

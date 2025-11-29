@@ -152,15 +152,19 @@ const App: React.FC = () => {
   const handleAnalyze = async () => {
     // Validation
     if (mode === AppMode.GENERATION && files.length === 0) {
-      alert("Please upload content to analyze.");
+      setError("Please upload content to analyze.");
       return;
     }
     if (mode === AppMode.REFINE && !config.originalText) {
-      alert("Please enter text to refine.");
+      setError("Please enter text to refine.");
+      return;
+    }
+    if (mode === AppMode.COMPETITOR_SPY && files.length === 0) {
+      setError("Please upload competitor content to analyze.");
       return;
     }
     if (mode === AppMode.TREND_HUNTER && !config.niche) {
-      alert("Please enter a niche to hunt trends for.");
+      setError("Please enter a niche to hunt trends for.");
       return;
     }
 
@@ -171,15 +175,32 @@ const App: React.FC = () => {
 
     try {
       const filesToAnalyze = files.map(f => f.file);
+
+      // Add safety check for large files
+      const totalSize = filesToAnalyze.reduce((sum, f) => sum + f.size, 0);
+      const MAX_TOTAL_SIZE = 100 * 1024 * 1024; // 100MB total
+      if (totalSize > MAX_TOTAL_SIZE) {
+        setError("Total file size exceeds 100MB. Please upload smaller files.");
+        setIsAnalyzing(false);
+        return;
+      }
+
       const data = await analyzeContent(filesToAnalyze, mode, platform, config, apiKey);
-      
+
       if (mode === AppMode.TREND_HUNTER) {
-        setTrendResults(data as TrendItem[]);
+        const trends = data as TrendItem[];
+        if (trends && trends.length > 0) {
+          setTrendResults(trends);
+        } else {
+          setError("No trends found for your niche. Try a different search term.");
+        }
       } else {
         setResult(data as AnalysisResult);
       }
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+      const errorMsg = err.message || "An unexpected error occurred.";
+      setError(errorMsg);
+      console.error("Analysis error:", err);
     } finally {
       setIsAnalyzing(false);
     }
