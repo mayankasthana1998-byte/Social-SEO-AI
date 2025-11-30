@@ -39,7 +39,6 @@ interface ConfigState {
   targetAudience: string;
   targetLanguage: string;
   demographics: string;
-  enableLiveTrends: boolean;
   brandGuidelines: string;
   niche: string;
 }
@@ -72,7 +71,6 @@ const App: React.FC = () => {
     targetAudience: '',
     targetLanguage: '',
     demographics: '',
-    enableLiveTrends: false,
     brandGuidelines: '',
     niche: ''
   });
@@ -129,10 +127,10 @@ const App: React.FC = () => {
         } else if (progress < 50) {
           setLoadingMessage('Phase 2: Scanning Video Frames & Audio...');
         } else if (progress < 75) {
-          if (config.enableLiveTrends || mode === AppMode.TREND_HUNTER) {
+          if (mode === AppMode.TREND_HUNTER) {
             setLoadingMessage('Phase 3: Searching Live Google Trends...');
           } else {
-            setLoadingMessage('Phase 2: Deep Semantic Analysis...'); 
+            setLoadingMessage('Phase 3: Deep Semantic Analysis...');
           }
         } else {
           setLoadingMessage(mode === AppMode.TREND_HUNTER ? 'Phase 4: Identifying Viral Patterns...' : 'Phase 4: Generating Viral Strategy...');
@@ -147,7 +145,7 @@ const App: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isAnalyzing, config.enableLiveTrends, mode, result, trendResults]);
+  }, [isAnalyzing, mode, result, trendResults]);
 
   const handleAnalyze = async () => {
     // Validation
@@ -361,27 +359,6 @@ const App: React.FC = () => {
           {/* Dynamic Configuration based on Mode */}
           <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm space-y-6">
             
-            {/* Live Trend Toggle (Hidden in Trend Hunter Mode as it's implicit) */}
-            {mode !== AppMode.TREND_HUNTER && (
-              <div className="flex items-center justify-between bg-indigo-900/20 p-4 rounded-xl border border-indigo-500/30">
-                <div className="flex items-center">
-                  <Zap className="text-yellow-400 w-5 h-5 mr-3" />
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Live Trend Mode</h3>
-                    <p className="text-xs text-indigo-300">Search web for real-time viral formats</p>
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer" 
-                    checked={config.enableLiveTrends} 
-                    onChange={(e) => setConfig({...config, enableLiveTrends: e.target.checked})} 
-                  />
-                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
-                </label>
-              </div>
-            )}
 
             {/* Platform Selector (Hidden in Trend Hunter & Spy) */}
             {mode !== AppMode.COMPETITOR_SPY && mode !== AppMode.TREND_HUNTER && (

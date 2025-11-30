@@ -75,16 +75,15 @@ export const analyzeContent = async (
   files: File[],
   mode: AppMode,
   platform: Platform,
-  config: { 
-    goal?: string; 
-    style?: string; 
-    keywords?: string; 
+  config: {
+    goal?: string;
+    style?: string;
+    keywords?: string;
     originalText?: string;
     geography?: string;
     targetAudience?: string;
     targetLanguage?: string;
     demographics?: string;
-    enableLiveTrends?: boolean;
     brandGuidelines?: string;
     niche?: string; // For Trend Hunter
   },
@@ -123,19 +122,6 @@ export const analyzeContent = async (
     }
     // Standard Modes
     else {
-      // Inject Live Trend Instructions if enabled
-      if (config.enableLiveTrends) {
-          promptText += `CRITICAL INSTRUCTION: You have access to Google Search. Before doing anything else:
-1. Search for "current viral trends and challenges ${currentDate}"
-2. Search for "trending content formats on ${platform} ${currentDate}"
-3. Search for "viral audio and sounds trending now"
-4. Analyze the search results and identify the top 3 trending formats
-5. Reference the specific trending content you found in your response (mention trend names in the 'trendDetected' field)
-6. Make sure to include real trending topics/sounds/challenges from your search results.
-
-` + "\n\n";
-      }
-
       // Inject Brand Guidelines if provided
       if (config.brandGuidelines) {
         promptText += BRAND_GUARD_INSTRUCTION(config.brandGuidelines) + "\n\n";
@@ -175,9 +161,9 @@ export const analyzeContent = async (
       thinkingConfig: { thinkingBudget: 1024 }
     };
 
-    // LOGIC: If Trend Hunter OR Live Trends is enabled, we need Google Search.
+    // LOGIC: If Trend Hunter mode, we need Google Search.
     // When Google Search is enabled, we cannot use responseSchema.
-    const useSearch = mode === AppMode.TREND_HUNTER || config.enableLiveTrends;
+    const useSearch = mode === AppMode.TREND_HUNTER;
 
     if (useSearch) {
       generateConfig.tools = [{ googleSearch: {} }];
