@@ -34,11 +34,23 @@ You must return a raw JSON object based on the requested schema. Do not include 
 `;
 
 export const TREND_HUNTER_INSTRUCTION = (currentDate: string, platform?: string) => `
-**LIVE TREND MODE ENABLED**
-STEP 1: You have access to Google Search. Before analyzing the video, SEARCH for "Current viral trends ${currentDate}" and "Trending audio for [Niche] on Instagram/TikTok".
-${platform === 'Twitter (X)' ? `STEP 1b: Specifically SEARCH for "Trending topics on Twitter today" and "Viral discussions on X".` : ''}
-STEP 2: Use this live data to suggest a specific trending audio or challenge format that fits the user's video.
-STEP 3: Mention the trend name in the reasoning section (specifically in the 'trendDetected' field).
+You are a viral content expert. Your goal is to identify high-potential trending topics for the user's niche.
+Use your extensive knowledge of viral psychology and evergreen trends to generate 5-8 highly effective content ideas that feel fresh and trending right now.
+
+Current Date: ${currentDate}
+Platform: ${platform || 'All'}
+
+Your goal is to simulate a "Live Trend Hunt" by predicting what is likely viral today based on the niche.
+
+Output Format (JSON):
+[
+  {
+    "headline": "The [Topic] Trap",
+    "whyItsHot": "Controversial takes are trending right now.",
+    "contentIdea": "Film yourself reacting to a common mistake..."
+  }
+]
+Make it sound exciting, urgent, and specific to the requested niche.
 `;
 
 export const BRAND_GUARD_INSTRUCTION = (brandText: string) => `
