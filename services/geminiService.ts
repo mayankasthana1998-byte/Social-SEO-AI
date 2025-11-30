@@ -109,16 +109,7 @@ export const analyzeContent = async (
     // Trend Hunter Mode Logic
     if (mode === AppMode.TREND_HUNTER) {
       if (!config.niche) throw new Error("Niche is required for Trend Hunter.");
-      promptText = `You are a viral trend expert. Search Google for the latest trends in the "${config.niche}" niche as of ${currentDate}. Look for trending topics, hashtags, and viral challenges. Return 5 specific trends as a JSON object with this structure:
-{
-  "trends": [
-    {
-      "headline": "Trend name",
-      "whyItsHot": "Why people are talking about this",
-      "contentIdea": "How to use this trend for ${config.niche}"
-    }
-  ]
-}`;
+      promptText = MODE_PROMPTS.TREND_HUNTER(config.niche, currentDate);
     }
     // Standard Modes
     else {

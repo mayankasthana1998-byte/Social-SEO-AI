@@ -56,13 +56,13 @@ export const MODE_PROMPTS = {
     User Goal: ${goal}.
     Desired Style: ${style}.
     ${targeting}
-    
-    Analyze the provided input (Image/Video). 
+
+    Analyze the provided input (Image/Video).
     Identify the visual hook, select a viral style, write the caption, and generate SEO.
-    
+
     If Platform is Twitter (X): Structure the 'caption' as a Thread (Tweet 1 [Hook] \n\n Tweet 2... etc).
     If Platform is Facebook: Optimize for 'Shareability' and community discussion.
-    
+
     Return a JSON object matching the AnalysisResult interface.
   `,
   REFINE: (originalText: string, keywords: string, targeting: string) => `
@@ -70,7 +70,7 @@ export const MODE_PROMPTS = {
     Context/Keywords: ${keywords}.
     Original Draft: "${originalText}".
     ${targeting}
-    
+
     Action: Semantic Weaving. Insert high-volume keywords naturally without disrupting narrative flow.
     Maintain original meaning 100%. Polish grammar. Enhance readability score.
     Return a JSON object where the 'strategy.caption' is the refined text, and fill other fields based on analysis of the text.
@@ -81,31 +81,51 @@ export const MODE_PROMPTS = {
     ${targeting}
     Do NOT analyze individually. Look for patterns.
     Deconstruct the "Viral DNA": Pacing, Color Psychology, Hook ID.
-    
-    Return a JSON object. 
+
+    Return a JSON object.
     - In 'visualAudit.summary', describe the common pattern found across all inputs.
     - In 'strategy.caption', provide a fill-in-the-blank Viral Template tailored to the target audience.
     - In 'competitorInsights', fill the object with 'visualTheme', 'ctaStrategy', and 'formula'.
   `,
   TREND_HUNTER: (niche: string, currentDate: string) => `
-    MODE: TREND HUNTER.
-    Niche: ${niche}.
-    Date: ${currentDate}.
-    
-    STEP 1: Search Google Trends, Twitter Trending, and TikTok Creative Center for the absolute latest news and trends in the ${niche} niche RIGHT NOW.
-    STEP 2: Select 5 specific, high-potential content ideas.
-    
-    Return a JSON object containing an array called "trends".
-    Structure:
+    🔥 VIRAL TREND HUNTER - REAL-TIME INSIGHTS 🔥
+
+    **YOUR NICHE:** ${niche}
+    **TODAY'S DATE:** ${currentDate}
+
+    Your Mission: You are a social media trend expert who knows EXACTLY what's blowing up right now. Search for the hottest, most shareable trends happening TODAY across Google, TikTok, Instagram, YouTube, and Twitter.
+
+    **SEARCH INSTRUCTIONS** (Be thorough and specific):
+    1. Search for "trending ${niche} today ${currentDate}"
+    2. Search for "viral ${niche} TikTok trends"
+    3. Search for "Instagram trending ${niche} content"
+    4. Search for "YouTube trending ${niche}"
+    5. Search for "what's trending on Twitter about ${niche}"
+    6. Search for "newest viral challenges 2025"
+    7. Search for "viral audio and sounds for ${niche}"
+
+    **WHAT MAKES A TREND "HOT":**
+    - It's happening RIGHT NOW (not last month)
+    - People are actively engaging with it
+    - There's a clear content format/hook
+    - It's relevant to ${niche}
+    - It has momentum and potential for sharing
+
+    **FIND & DELIVER:**
+    Return 8-10 SPECIFIC viral trends as a JSON object with this exact structure:
     {
       "trends": [
         {
-          "headline": "Trend Name",
-          "whyItsHot": "1 sentence explanation of why it is viral now.",
-          "contentIdea": "Specific instruction on how to apply this to the niche."
+          "headline": "Catchy trend name (what it's called)",
+          "whyItsHot": "Explain in a casual, human tone WHY this is going crazy right now. 1-2 sentences. Make it feel authentic and conversational.",
+          "contentIdea": "Give a SPECIFIC, actionable idea for how someone in the ${niche} space can jump on this trend. Be detailed and practical."
         },
-        ... (5 items)
+        ... (8-10 items total)
       ]
     }
+
+    **TONE:** Sound like a friend who's scrolling through the internet RIGHT NOW and genuinely excited about what they're finding. Use casual language. Be specific. Don't sound robotic.
+
+    **QUALITY OVER QUANTITY:** Make sure EVERY trend is legitimate, current, and actually applicable to ${niche}.
   `
 };
